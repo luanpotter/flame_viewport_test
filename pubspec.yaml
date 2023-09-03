@@ -1,0 +1,23 @@
+name: flame_viewport_test
+description: A simple Flame showcase to test out viewports, old and new.
+version: 0.1.0
+
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flame: 1.8.2
+
+dev_dependencies:
+  flame_lint: 1.1.0
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: false
