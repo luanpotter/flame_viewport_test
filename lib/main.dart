@@ -1,17 +1,17 @@
 import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
-import 'package:flame/game.dart';
-import 'package:flutter/material.dart';
+import 'package:flame/game.dart' hide Viewport;
+import 'package:flutter/material.dart' hide Viewport;
 
 void main() {
   runApp(GameWidget(game: MyGame()));
 }
 
-class MyGame extends FlameGame {
+class MyGame extends FlameGame with CameraHelper {
   @override
   Future<void> onLoad() async {
-    oldOnLoad();
-    // newOnLoad();
+    // oldOnLoad();
+    newOnLoad();
     return super.onLoad();
   }
 
@@ -21,19 +21,17 @@ class MyGame extends FlameGame {
   }
 
   Future<void> newOnLoad() async {
-    // ??
-    final world = World();
-    final camera = CameraComponent(
-      world: world,
-      viewport: FixedSizeViewport(100, 100)
-        ..anchor = Anchor.center
-        ..position = size / 2,
-      viewfinder: Viewfinder()
-        ..anchor = Anchor.center
-        ..position = Vector2.all(50),
-    );
+    final world = await createCamera(Vector2.all(100));
+    await world.add(_makeBg());
     await world.add(_makeRect());
-    await addAll([camera, world]);
+  }
+
+  _Rect _makeBg() {
+    return _Rect(
+      position: size / 2,
+      size: size,
+      color: const Color(0xFFCCCCCC),
+    );
   }
 
   _Rect _makeRect() {
@@ -45,19 +43,44 @@ class MyGame extends FlameGame {
 }
 
 class _Rect extends PositionComponent with HasGameRef<MyGame> {
-  static final _paint = Paint()..color = const Color(0xFF00FF00);
+  final Paint _paint;
 
   _Rect({
     required Vector2 position,
     required Vector2 size,
-  }) : super(
+    Color color = const Color(0xFF00FF00),
+  })  : _paint = Paint()..color = color,
+        super(
           position: position,
           size: size,
+          anchor: Anchor.center,
         );
 
   @override
   void render(Canvas canvas) {
     super.render(canvas);
     canvas.drawRect(size.toRect(), _paint);
+  }
+}
+
+mixin CameraHelper on FlameGame {
+  late final Viewfinder viewfinder;
+
+  @override
+  Vector2 get size => viewfinder.visibleGameSize!;
+
+  Future<World> createCamera(Vector2 size) async {
+    final world = World();
+    final camera = CameraComponent.withFixedResolution(
+      width: size.x,
+      height: size.y,
+      world: world,
+    );
+    camera.viewfinder.anchor = Anchor.center;
+    camera.viewport.anchor = Anchor.center;
+    camera.moveBy(size / 2);
+    viewfinder = camera.viewfinder;
+    await addAll([camera, world]);
+    return world;
   }
 }
