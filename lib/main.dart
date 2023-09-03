@@ -1,3 +1,4 @@
+import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -9,15 +10,37 @@ void main() {
 class MyGame extends FlameGame {
   @override
   Future<void> onLoad() async {
-    // old way
-    camera.viewport = FixedResolutionViewport(Vector2.all(100));
-    await add(
-      _Rect(
-        position: Vector2.all(50),
-        size: Vector2.all(10),
-      ),
-    );
+    oldOnLoad();
+    // newOnLoad();
     return super.onLoad();
+  }
+
+  Future<void> oldOnLoad() async {
+    camera.viewport = FixedResolutionViewport(Vector2.all(100));
+    await add(_makeRect());
+  }
+
+  Future<void> newOnLoad() async {
+    // ??
+    final world = World();
+    final camera = CameraComponent(
+      world: world,
+      viewport: FixedSizeViewport(100, 100)
+        ..anchor = Anchor.center
+        ..position = size / 2,
+      viewfinder: Viewfinder()
+        ..anchor = Anchor.center
+        ..position = Vector2.all(50),
+    );
+    await world.add(_makeRect());
+    await addAll([camera, world]);
+  }
+
+  _Rect _makeRect() {
+    return _Rect(
+      position: Vector2.all(50),
+      size: Vector2.all(10),
+    );
   }
 }
 
